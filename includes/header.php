@@ -39,9 +39,29 @@ require_once 'auth.php';
                     <li class="nav-item">
                         <a class="nav-link" href="rooms.php"><i class="bi bi-bed me-1"></i> Rooms</a>
                     </li>
+                    <!-- Inside the navigation menu -->
+<?php if (isLoggedIn()): ?>
+    <!-- ... other nav items ... -->
+    <li class="nav-item">
+        <a class="nav-link" href="order-food.php">
+            <i class="bi bi-cart3 me-1"></i> Order Food
+            <span class="badge bg-danger nav-cart-badge" style="display: none;">0</span>
+        </a>
+    </li>
+<?php endif; ?>
                     <li class="nav-item">
                         <a class="nav-link" href="restaurant.php"><i class="bi bi-egg-fried me-1"></i> Restaurant</a>
                     </li>
+                    <!-- Inside the navigation menu -->
+<li class="nav-item">
+    <a class="nav-link position-relative" href="order-food.php">
+        <i class="bi bi-cart3 me-1"></i> Order Food
+        <span class="badge bg-danger nav-cart-badge position-absolute top-0 start-100 translate-middle" 
+              style="display: none; font-size: 0.6rem; padding: 0.2rem 0.4rem;">
+            0
+        </span>
+    </a>
+</li>
                     <li class="nav-item">
                         <a class="nav-link" href="menu.php"><i class="bi bi-menu-button me-1"></i> Menu</a>
                     </li>

@@ -86,4 +86,23 @@ try {
                         Spicy level: Medium
                     </li>
                     <?php endif; ?>
-                </
+                </ul>
+            </div>
+            
+            <div class="d-grid gap-2">
+                <button class="btn btn-primary btn-lg add-to-cart-modal"
+                        data-item-id="<?php echo $item['id']; ?>"
+                        data-item-name="<?php echo htmlspecialchars($item['name']); ?>"
+                        data-item-price="<?php echo $item['price']; ?>">
+                    <i class="bi bi-plus-circle me-2"></i> Add to Order
+                </button>
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+    
+    <?php
+} catch (PDOException $e) {
+    echo '<div class="alert alert-danger">Error loading item details.</div>';
+}
+?>

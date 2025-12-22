@@ -82,3 +82,17 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 });
+// Add this to your main.js or include in footer
+function updateCartBadge() {
+    const cart = JSON.parse(localStorage.getItem('eden_cart')) || [];
+    const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
+    
+    // Update all cart badges
+    document.querySelectorAll('.nav-cart-badge').forEach(badge => {
+        badge.textContent = cartCount;
+        badge.style.display = cartCount > 0 ? 'inline-block' : 'none';
+    });
+}
+
+// Update badge on page load
+document.addEventListener('DOMContentLoaded', updateCartBadge);
