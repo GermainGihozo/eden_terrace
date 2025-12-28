@@ -1,4 +1,9 @@
 <?php
+// Start session at the VERY TOP
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
 $page_title = "My Dashboard";
 require_once 'includes/header.php';
 require_once 'includes/auth.php';
@@ -12,7 +17,43 @@ if (!isLoggedIn()) {
 
 $db = getDB();
 $user_id = $_SESSION['user_id'];
-$user = getCurrentUser();
+
+// Get user info directly from database for reliability
+try {
+    $stmt = $db->prepare("SELECT id, email, full_name, phone, address, role FROM users WHERE id = ?");
+    $stmt->execute([$user_id]);
+    $user_data = $stmt->fetch();
+    
+    if (!$user_data) {
+        // User not found in database, log them out
+        session_destroy();
+        header('Location: login.php');
+        exit();
+    }
+    
+    // Update session with fresh data from database
+    $_SESSION['user_id'] = $user_data['id'];
+    $_SESSION['user_email'] = $user_data['email'] ?? '';
+    $_SESSION['user_name'] = $user_data['full_name'] ?? '';
+    $_SESSION['user_role'] = $user_data['role'] ?? 'guest';
+    
+    // Create user array for display
+    $user = [
+        'id' => $user_data['id'],
+        'email' => $user_data['email'] ?? 'No email',
+        'name' => $user_data['full_name'] ?? 'Guest',
+        'role' => $user_data['role'] ?? 'guest'
+    ];
+    
+} catch (PDOException $e) {
+    // If database fails, use session data with null checks
+    $user = [
+        'id' => $_SESSION['user_id'] ?? 0,
+        'email' => $_SESSION['user_email'] ?? 'No email',
+        'name' => $_SESSION['user_name'] ?? 'Guest',
+        'role' => $_SESSION['user_role'] ?? 'guest'
+    ];
+}
 
 // Get user's bookings
 try {
@@ -55,8 +96,27 @@ try {
     $stmt->execute([$user_id]);
     $stats = $stmt->fetch();
     
+    // If stats is false (no bookings), initialize with zeros
+    if (!$stats) {
+        $stats = [
+            'total_bookings' => 0,
+            'pending_bookings' => 0,
+            'confirmed_bookings' => 0,
+            'total_spent' => 0
+        ];
+    }
+    
 } catch (PDOException $e) {
     $error = "Error loading dashboard data: " . $e->getMessage();
+    // Initialize empty arrays and stats
+    $room_bookings = [];
+    $restaurant_bookings = [];
+    $stats = [
+        'total_bookings' => 0,
+        'pending_bookings' => 0,
+        'confirmed_bookings' => 0,
+        'total_spent' => 0
+    ];
 }
 ?>
 
@@ -65,7 +125,7 @@ try {
     <div class="container">
         <div class="row align-items-center">
             <div class="col-md-8">
-                <h1 class="h2 mb-0">Welcome back, <?php echo htmlspecialchars($user['name'] ?? 'Guest'); ?>!</h1>
+                <h1 class="h2 mb-0">Welcome back, <?php echo htmlspecialchars($user['name']); ?>!</h1>
                 <p class="mb-0">Manage your bookings and account</p>
             </div>
             <div class="col-md-4 text-md-end">
@@ -169,34 +229,49 @@ try {
                                     </thead>
                                     <tbody>
                                         <?php foreach ($room_bookings as $booking): 
-                                            $nights = date_diff(
-                                                new DateTime($booking['check_in']), 
-                                                new DateTime($booking['check_out'])
-                                            )->days;
+                                            try {
+                                                $check_in = $booking['check_in'] ?? null;
+                                                $check_out = $booking['check_out'] ?? null;
+                                                $nights = 0;
+                                                
+                                                if ($check_in && $check_out) {
+                                                    $nights = date_diff(
+                                                        new DateTime($check_in), 
+                                                        new DateTime($check_out)
+                                                    )->days;
+                                                }
+                                            } catch (Exception $e) {
+                                                $nights = 0;
+                                            }
                                         ?>
                                         <tr>
                                             <td>
                                                 <strong><?php echo htmlspecialchars($booking['room_name'] ?? 'N/A'); ?></strong>
                                             </td>
                                             <td>
-                                                <?php echo date('M d', strtotime($booking['check_in'])); ?> - 
-                                                <?php echo date('M d, Y', strtotime($booking['check_out'])); ?>
-                                                <br><small class="text-muted"><?php echo $nights; ?> nights</small>
+                                                <?php if (!empty($booking['check_in'])): ?>
+                                                    <?php echo date('M d', strtotime($booking['check_in'])); ?> - 
+                                                    <?php echo date('M d, Y', strtotime($booking['check_out'])); ?>
+                                                    <br><small class="text-muted"><?php echo $nights; ?> nights</small>
+                                                <?php else: ?>
+                                                    <small class="text-muted">Dates not set</small>
+                                                <?php endif; ?>
                                             </td>
-                                            <td><?php echo $booking['num_guests']; ?> guests</td>
-                                            <td>$<?php echo number_format($booking['total_amount'], 2); ?></td>
+                                            <td><?php echo $booking['num_guests'] ?? 0; ?> guests</td>
+                                            <td>$<?php echo number_format($booking['total_amount'] ?? 0, 2); ?></td>
                                             <td>
                                                 <?php 
+                                                $status = $booking['status'] ?? 'pending';
                                                 $status_class = [
                                                     'pending' => 'warning',
                                                     'confirmed' => 'success',
                                                     'cancelled' => 'danger',
                                                     'completed' => 'info',
                                                     'paid' => 'primary'
-                                                ][$booking['status']] ?? 'secondary';
+                                                ][$status] ?? 'secondary';
                                                 ?>
                                                 <span class="badge bg-<?php echo $status_class; ?>">
-                                                    <?php echo ucfirst($booking['status']); ?>
+                                                    <?php echo ucfirst($status); ?>
                                                 </span>
                                             </td>
                                             <td>
@@ -204,7 +279,7 @@ try {
                                                    class="btn btn-sm btn-outline-primary">
                                                     <i class="bi bi-eye"></i>
                                                 </a>
-                                                <?php if ($booking['status'] === 'pending'): ?>
+                                                <?php if ($status === 'pending'): ?>
                                                     <button class="btn btn-sm btn-outline-danger cancel-booking" 
                                                             data-id="<?php echo $booking['id']; ?>">
                                                         <i class="bi bi-x-circle"></i>
@@ -252,25 +327,30 @@ try {
                                     <tbody>
                                         <?php foreach ($restaurant_bookings as $booking): ?>
                                         <tr>
-                                            <td>Table <?php echo $booking['table_number']; ?></td>
+                                            <td>Table <?php echo $booking['table_number'] ?? 'N/A'; ?></td>
                                             <td>
-                                                <?php echo date('M d, Y', strtotime($booking['reservation_time'])); ?>
-                                                <br><small class="text-muted">
-                                                    <?php echo date('h:i A', strtotime($booking['reservation_time'])); ?>
-                                                </small>
+                                                <?php if (!empty($booking['reservation_time'])): ?>
+                                                    <?php echo date('M d, Y', strtotime($booking['reservation_time'])); ?>
+                                                    <br><small class="text-muted">
+                                                        <?php echo date('h:i A', strtotime($booking['reservation_time'])); ?>
+                                                    </small>
+                                                <?php else: ?>
+                                                    <small class="text-muted">Time not set</small>
+                                                <?php endif; ?>
                                             </td>
-                                            <td><?php echo $booking['party_size']; ?> people</td>
+                                            <td><?php echo $booking['party_size'] ?? 0; ?> people</td>
                                             <td>
                                                 <?php 
+                                                $status = $booking['status'] ?? 'pending';
                                                 $status_class = [
                                                     'pending' => 'warning',
                                                     'confirmed' => 'success',
                                                     'cancelled' => 'danger',
                                                     'completed' => 'info'
-                                                ][$booking['status']] ?? 'secondary';
+                                                ][$status] ?? 'secondary';
                                                 ?>
                                                 <span class="badge bg-<?php echo $status_class; ?>">
-                                                    <?php echo ucfirst($booking['status']); ?>
+                                                    <?php echo ucfirst($status); ?>
                                                 </span>
                                             </td>
                                             <td>
@@ -278,7 +358,7 @@ try {
                                                    class="btn btn-sm btn-outline-primary">
                                                     <i class="bi bi-eye"></i>
                                                 </a>
-                                                <?php if ($booking['status'] === 'pending'): ?>
+                                                <?php if ($status === 'pending'): ?>
                                                     <button class="btn btn-sm btn-outline-danger cancel-booking" 
                                                             data-id="<?php echo $booking['id']; ?>">
                                                         <i class="bi bi-x-circle"></i>
@@ -311,8 +391,8 @@ try {
                             </div>
                             <h5><?php echo htmlspecialchars($user['name']); ?></h5>
                             <p class="text-muted mb-1"><?php echo htmlspecialchars($user['email']); ?></p>
-                            <span class="badge bg-<?php echo $user['role'] === 'admin' ? 'danger' : 'primary'; ?>">
-                                <?php echo ucfirst($user['role']); ?>
+                            <span class="badge bg-<?php echo ($user['role'] ?? 'guest') === 'admin' ? 'danger' : 'primary'; ?>">
+                                <?php echo ucfirst($user['role'] ?? 'guest'); ?>
                             </span>
                         </div>
                         
@@ -323,7 +403,7 @@ try {
                             <a href="change-password.php" class="list-group-item list-group-item-action">
                                 <i class="bi bi-key me-2"></i>Change Password
                             </a>
-                            <?php if (isAdmin()): ?>
+                            <?php if (($user['role'] ?? 'guest') === 'admin'): ?>
                                 <a href="admin/" class="list-group-item list-group-item-action">
                                     <i class="bi bi-speedometer2 me-2"></i>Admin Dashboard
                                 </a>
@@ -383,9 +463,13 @@ try {
                             } else {
                                 foreach ($upcoming_stays as $stay) {
                                     echo '<div class="mb-3 pb-3 border-bottom">';
-                                    echo '<h6 class="mb-1">' . htmlspecialchars($stay['room_name']) . '</h6>';
+                                    echo '<h6 class="mb-1">' . htmlspecialchars($stay['room_name'] ?? 'Room') . '</h6>';
                                     echo '<small class="text-muted">';
-                                    echo date('M d', strtotime($stay['check_in'])) . ' - ' . date('M d, Y', strtotime($stay['check_out']));
+                                    if (!empty($stay['check_in']) && !empty($stay['check_out'])) {
+                                        echo date('M d', strtotime($stay['check_in'])) . ' - ' . date('M d, Y', strtotime($stay['check_out']));
+                                    } else {
+                                        echo 'Dates not set';
+                                    }
                                     echo '</small>';
                                     echo '</div>';
                                 }

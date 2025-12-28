@@ -1,4 +1,6 @@
 <?php
+// includes/config.php
+
 // Database configuration
 define('DB_HOST', 'localhost');
 define('DB_NAME', 'eden_terrace');
@@ -13,7 +15,7 @@ define('ADMIN_EMAIL', 'admin@edenterrace.com');
 // Timezone
 date_default_timezone_set('America/New_York');
 
-// Start session
+// Start session if not already started
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
@@ -21,4 +23,7 @@ if (session_status() === PHP_SESSION_NONE) {
 // Error reporting (disable in production)
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
+
+// Set default timezone for PHP warnings
+date_default_timezone_set('UTC');
 ?>

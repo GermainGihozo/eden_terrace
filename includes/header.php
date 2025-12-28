@@ -42,12 +42,12 @@ require_once 'auth.php';
                     <!-- Inside the navigation menu -->
 <?php if (isLoggedIn()): ?>
     <!-- ... other nav items ... -->
-    <li class="nav-item">
+    <!-- <li class="nav-item">
         <a class="nav-link" href="order-food.php">
             <i class="bi bi-cart3 me-1"></i> Order Food
             <span class="badge bg-danger nav-cart-badge" style="display: none;">0</span>
         </a>
-    </li>
+    </li> -->
 <?php endif; ?>
                     <li class="nav-item">
                         <a class="nav-link" href="restaurant.php"><i class="bi bi-egg-fried me-1"></i> Restaurant</a>

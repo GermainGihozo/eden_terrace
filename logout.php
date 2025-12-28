@@ -1,7 +1,10 @@
 <?php
-session_start();
+// Start session
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 
-// Destroy all session data
+// Unset all session variables
 $_SESSION = array();
 
 // Delete the session cookie

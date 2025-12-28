@@ -1,11 +1,13 @@
 <?php
 // Start session FIRST
-session_start();
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 
 $page_title = "Login";
-require_once 'includes/header.php';
 
-// If already logged in, redirect
+
+// Redirect if already logged in
 if (isset($_SESSION['user_id'])) {
     header('Location: dashboard.php');
     exit();
@@ -57,36 +59,60 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $error = "Error: " . $e->getMessage();
     }
 }
+require_once 'includes/header.php';
 ?>
 
 <div class="container py-5">
     <div class="row justify-content-center">
-        <div class="col-md-6">
-            <div class="card">
-                <div class="card-body">
-                    <h2 class="text-center mb-4">Login</h2>
-                    
+        <div class="col-md-6 col-lg-5">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-0 text-center py-4">
+                    <h2 class="fw-bold mb-0">Sign In</h2>
+                </div>
+                <div class="card-body p-4 p-sm-5">
                     <?php if ($error): ?>
-                        <div class="alert alert-danger"><?php echo $error; ?></div>
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            <i class="bi bi-exclamation-triangle me-2"></i>
+                            <?php echo $error; ?>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
                     <?php endif; ?>
                     
                     <form method="POST">
                         <div class="mb-3">
-                            <label>Email</label>
-                            <input type="email" name="email" class="form-control" value="guest@test.com" required>
+                            <label for="email" class="form-label">Email Address</label>
+                            <input type="email" class="form-control" id="email" name="email" 
+                                   value="guest@test.com" required>
                         </div>
+                                          
                         <div class="mb-3">
-                            <label>Password</label>
-                            <input type="password" name="password" class="form-control" value="password123" required>
+                            <label for="password" class="form-label">Password</label>
+                            <input type="password" class="form-control" id="password" name="password" 
+                                   value="password123" required>
                             <small class="text-muted">Use 'password123' for test accounts</small>
                         </div>
-                        <button type="submit" class="btn btn-primary w-100">Login</button>
+                        
+                        <div class="d-grid mb-3">
+                            <button type="submit" class="btn btn-primary btn-lg">Sign In</button>
+                        </div>
                     </form>
                     
-                    <div class="mt-3 text-center">
-                        <p>Test Accounts:</p>
-                        <p>guest@test.com / password123</p>
-                        <p>admin@edenterrace.com / password123</p>
+                    <div class="text-center">
+                        <p class="mb-2">Test Accounts:</p>
+                        <div class="small">
+                            <div class="mb-1">
+                                <strong>Guest:</strong> guest@test.com / password123
+                            </div>
+                            <div>
+                                <strong>Admin:</strong> admin@edenterrace.com / password123
+                            </div>
+                        </div>
+                        
+                        <hr class="my-4">
+                        
+                        <p class="mb-0">Don't have an account? 
+                            <a href="register.php" class="text-decoration-none">Sign up</a>
+                        </p>
                     </div>
                 </div>
             </div>
