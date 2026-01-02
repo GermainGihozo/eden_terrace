@@ -6,10 +6,14 @@ if (session_status() === PHP_SESSION_NONE) {
 
 $page_title = "Login";
 
-
 // Redirect if already logged in
 if (isset($_SESSION['user_id'])) {
-    header('Location: dashboard.php');
+    // Redirect based on user role
+    if ($_SESSION['user_role'] === 'admin') {
+        header('Location: admin/dashboard.php');
+    } else {
+        header('Location: dashboard.php');
+    }
     exit();
 }
 
@@ -36,7 +40,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $_SESSION['user_name'] = $user['full_name'];
                 $_SESSION['user_role'] = $user['role'];
                 
-                header('Location: dashboard.php');
+                // Redirect based on role
+                if ($user['role'] === 'admin') {
+                    header('Location: admin/dashboard.php');
+                } else {
+                    header('Location: dashboard.php');
+                }
                 exit();
             }
             
@@ -47,7 +56,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $_SESSION['user_name'] = $user['full_name'];
                 $_SESSION['user_role'] = $user['role'];
                 
-                header('Location: dashboard.php');
+                // Redirect based on role
+                if ($user['role'] === 'admin') {
+                    header('Location: admin/dashboard.php');
+                } else {
+                    header('Location: dashboard.php');
+                }
                 exit();
             } else {
                 $error = "Invalid password. Try 'password123'";
@@ -82,7 +96,7 @@ require_once 'includes/header.php';
                         <div class="mb-3">
                             <label for="email" class="form-label">Email Address</label>
                             <input type="email" class="form-control" id="email" name="email" 
-                                   value="guest@test.com" required>
+                                   value="admin@edenterrace.com" required>
                         </div>
                                           
                         <div class="mb-3">
@@ -101,10 +115,12 @@ require_once 'includes/header.php';
                         <p class="mb-2">Test Accounts:</p>
                         <div class="small">
                             <div class="mb-1">
-                                <strong>Guest:</strong> guest@test.com / password123
+                                <strong>Admin:</strong> admin@edenterrace.com / password123
+                                <br><span class="text-muted">(Goes to Admin Panel)</span>
                             </div>
                             <div>
-                                <strong>Admin:</strong> admin@edenterrace.com / password123
+                                <strong>Guest:</strong> guest@test.com / password123
+                                <br><span class="text-muted">(Goes to User Dashboard)</span>
                             </div>
                         </div>
                         
