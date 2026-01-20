@@ -578,7 +578,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         <div class="d-flex justify-content-between align-items-start">
                             <div>
                                 <h6 class="mb-1">${item.name}</h6>
-                                <small class="text-muted">$${item.price.toFixed(2)} each</small>
+                                <small class="text-muted">Rwf${item.price.toFixed(2)} each</small>
                             </div>
                             <div class="text-end">
                                 <div class="d-flex align-items-center">

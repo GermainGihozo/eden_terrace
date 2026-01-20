@@ -1,0 +1,35 @@
+eden_terrace/
+│
+├── admin/
+│   ├── dashboard.php
+│   ├── bookings.php
+│   ├── rooms.php
+│   ├── menu.php
+│   ├── users.php
+│   └── logout.php
+│
+├── api/
+│   └── bookings.php
+│
+├── assets/
+│   ├── css/
+│   ├── js/
+│   └── images/
+│
+├── db/
+│   └── connection.php
+│
+├── includes/
+│   ├── header.php
+│   ├── footer.php
+│   ├── auth.php
+│   └── functions.php
+│
+├── index.php
+├── rooms.php
+├── restaurant.php
+├── dashboard.php
+├── book-room.php
+├── book-table.php
+├── order-food.php
+└── login.php

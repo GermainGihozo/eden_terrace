@@ -12,7 +12,7 @@ require_once 'includes/auth.php';
         <div class="row align-items-center min-vh-80">
             <div class="col-lg-6">
                 <h1 class="display-4 fw-bold mb-4">Experience Luxury & Gourmet Dining</h1>
-                <p class="lead mb-4"> hotel with award-winning restaurant in the heart of the city. Book your stay or table for an unforgettable experience.</p>
+                <p class="lead mb-4"> hotel with award-winning restaurant in the heart of the Byumba city. Book your stay or table for an unforgettable experience.</p>
                 <div class="d-flex flex-wrap gap-3">
                     <a href="book-room.php" class="btn btn-primary btn-lg px-4 py-3">
                         <i class="bi bi-calendar-check me-2"></i> Book a Room

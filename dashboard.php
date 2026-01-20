@@ -11,7 +11,7 @@ require_once 'includes/db.php';
 
 // Require login to access dashboard
 if (!isLoggedIn()) {
-    header('Location: login.php');
+    // header('Location: login.php');
     exit();
 }
 
